@@ -16,6 +16,6 @@
         }
     ],
     "require": {
-        
+        "altorouter/altorouter": "^2.0"
     }
 }
