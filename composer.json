@@ -1,0 +1,21 @@
+{
+    "name": "karo_ej/php-windy-api",
+    "autoload": {
+        "psr-4": {
+            "App\\": "App/",
+            "Core\\": "Core/"
+        },
+        "files": [
+            "core/functions.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "g-i-kala",
+            "email": "5star@wp.pl"
+        }
+    ],
+    "require": {
+        
+    }
+}
