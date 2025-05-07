@@ -5,5 +5,6 @@
 </head>
 <body>
     <h1><?= htmlspecialchars($message) ?></h1>
+   <a href="/chat">Ask..</a>
 </body>
 </html>
