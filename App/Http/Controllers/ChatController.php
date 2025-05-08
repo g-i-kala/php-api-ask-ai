@@ -2,19 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Request;
+use App\Services\ApiService;
+
 class ChatController
 {
+    public function __construct(private ApiService $apiService)
+    {
+
+    }
+
     public function index()
     {
         view('chat-form.view.php');
     }
 
-    public function handleChat()
+    public function handleChat(Request $request)
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userInput = $_POST['userInput'];
+        if ($request->getMethod() === 'POST') {
+            $userInput = $request->getData('userInput');
 
-            // Prepare the data to send in the POST request
             $requestData = [
                 "contents" => [
                     [
@@ -27,34 +34,8 @@ class ChatController
                 ]
             ];
 
-            // Convert the data to JSON
-            $jsonData = json_encode($requestData);
-
-            // Initialize cURL session
-            $ch = curl_init();
-
-            // Set the URL and other options
-            $apiKey = $_ENV['API_KEY'] ?? null;
-            $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
-
-            curl_setopt($ch, CURLOPT_URL, $apiUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($jsonData)
-            ]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
-
-            // Execute the request and capture the response
-            $response = curl_exec($ch);
-
-            // Check for errors
-            if ($response === false) {
-                echo "cURL Error: " . curl_error($ch);
-            } else {
-                // Decode the response
-                $responseData = json_decode($response, true);
+            try {
+                $responseData = $this->apiService->sendRequest('POST', $requestData);
 
                 // Display the AI's response
                 if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
@@ -63,12 +44,10 @@ class ChatController
                 } else {
                     echo "<p>No response from AI.</p>";
                 }
+            } catch (\Exception $e) {
+                echo "Error: " . $e->getMessage();
             }
-
-            // Close the cURL session
-            curl_close($ch);
-        } else {
-            echo "Invalid request method.";
         }
+
     }
 }
