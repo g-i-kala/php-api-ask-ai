@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Request;
 use App\Services\ApiService;
+use Core\Validator;
 
 class ChatController
 {
@@ -19,8 +20,17 @@ class ChatController
 
     public function handleChat(Request $request)
     {
+        $errors = [];
+
         if ($request->getMethod() === 'POST') {
-            $userInput = $request->getData('userInput');
+            $userInput = ($request->getData('userInput'));
+
+            if (! Validator::validateStriing($userInput, 1, 200)) {
+                $errors['input'] = 'Validation failed. Adjust lenght of your question.';
+                return view('chat-form.view.php', [
+                    'errors' => $errors
+                ]);
+            }
 
             $requestData = [
                 "contents" => [
@@ -37,26 +47,21 @@ class ChatController
             try {
                 $responseData = $this->apiService->sendRequest('POST', $requestData);
 
-                $errors = [];
-                if (! $responseData) {
-                    $errors['response'] = 'No response from AI';
+                if ($responseData) {
+                    throw new \Exception('No Response from AI');
                 }
 
                 return view('chat-response.view.php', [
                     'response' => $responseData,
                 ]);
 
-
-                // Display the AI's response
-                // if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
-                //     echo "<h2>AI Response:</h2>";
-                //     echo "<p>" . htmlspecialchars($responseData['candidates'][0]['content']['parts'][0]['text']) . "</p>";
-                // } else {
-                //     echo "<p>No response from AI.</p>";
-                // }
             } catch (\Exception $e) {
-                echo "Error: " . $e->getMessage();
+                $message = $e->getMessage();
+                error_log($message);
+                $errors['message'] = $e->getMessage();
             }
+
+            return view('chat-form.view.php', ['errors' => $errors]);
         }
 
     }
